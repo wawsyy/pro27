@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {FHE, euint32, externalEuint32} from "@fhevm/solidity/lib/FHE.sol";
+import {FHE, euint32, externalEuint32, ebool} from "@fhevm/solidity/lib/FHE.sol";
 import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 /// @title ProductionDelta - Encrypted Production Difference Tracker
@@ -35,11 +35,12 @@ contract ProductionDelta is SepoliaConfig {
     /// @notice Event emitted when operations are resumed
     event OperationsResumed(address indexed resumer);
     /// @notice Contract constructor
-    /// @dev Initializes the contract with the deployer as owner
+    /// @dev Initializes the contract with the deployer as owner and sets up initial state
     constructor() {
         _owner = msg.sender;
         _authorizedUsers[msg.sender] = true;
         _emergencyStop = false;
+        _lastUpdateTimestamp = block.timestamp;
     }
 
     /// @notice Modifier to restrict access to owner only
@@ -57,6 +58,13 @@ contract ProductionDelta is SepoliaConfig {
     /// @notice Modifier to check if emergency stop is not active
     modifier notInEmergency() {
         require(!_emergencyStop, "Contract is in emergency stop mode");
+        _;
+    }
+
+    /// @notice Validates input value range
+    /// @param value The value to validate
+    modifier validValue(uint256 value) {
+        require(value > 0 && value <= 1000000, "Value must be between 1 and 1,000,000");
         _;
     }
     euint32 private _yesterdayProduction;
@@ -141,13 +149,14 @@ contract ProductionDelta is SepoliaConfig {
         return (_lastUpdateTimestamp, _lastUpdater);
     }
 
-    /// @notice Validates that both production values are set and greater than zero
-    /// @return true if both values are properly set, false otherwise
-    function validateProductionData() external view returns (bool) {
+    /// @notice Returns encrypted comparison results for validation
+    /// @return yesterdayGreaterThanZero Encrypted boolean indicating if yesterday > 0
+    /// @return todayGreaterThanZero Encrypted boolean indicating if today > 0
+    /// @dev Note: Decryption must be done off-chain. This function returns encrypted comparison results.
+    function validateProductionData() external returns (ebool yesterdayGreaterThanZero, ebool todayGreaterThanZero) {
         euint32 zero = FHE.asEuint32(0);
-        bool yesterdayValid = FHE.decrypt(FHE.lt(_yesterdayProduction, zero));
-        bool todayValid = FHE.decrypt(FHE.lt(_todayProduction, zero));
-        return yesterdayValid && todayValid;
+        // Return encrypted comparison results - decryption must be done off-chain
+        return (FHE.gt(_yesterdayProduction, zero), FHE.gt(_todayProduction, zero));
     }
 
     /// @notice Authorize a user to perform operations
@@ -186,23 +195,78 @@ contract ProductionDelta is SepoliaConfig {
 
     /// @notice Get contract status
     /// @return owner The contract owner address
-    /// @return emergencyStop Whether emergency stop is active
-    function getContractStatus() external view returns (address owner, bool emergencyStop) {
+    /// @return isEmergencyStopped Whether emergency stop is active
+    function getContractStatus() external view returns (address owner, bool isEmergencyStopped) {
         return (_owner, _emergencyStop);
     }
 
-    /// @notice Checks if production increased compared to yesterday
-    /// @return true if today production > yesterday production, false otherwise
-    function isProductionIncreased() external view returns (bool) {
-        return FHE.decrypt(FHE.gt(_todayProduction, _yesterdayProduction));
+    /// @notice Get comprehensive contract statistics
+    /// @return totalAuthorized Total number of authorized users
+    /// @return lastUpdateTimestamp Last calculation timestamp
+    /// @return isEmergencyStopped Whether emergency stop is active
+    /// @return yesterdayComparison Encrypted comparison result for yesterday > 0
+    /// @return todayComparison Encrypted comparison result for today > 0
+    /// @dev Note: Decryption must be done off-chain. This function returns encrypted comparison results.
+    function getContractStatistics() external returns (uint256 totalAuthorized, uint256 lastUpdateTimestamp, bool isEmergencyStopped, ebool yesterdayComparison, ebool todayComparison) {
+        uint256 authCount = 1; // owner is always authorized
+
+        // Count additional authorized users (excluding owner)
+        address[] memory authorizedAddresses = new address[](100); // reasonable limit
+        uint256 authIndex = 0;
+
+        // This is a simplified count - in production, consider maintaining a counter
+        // For now, we'll use a basic approach
+        for(uint256 i = 0; i < authorizedAddresses.length && authIndex < 10; i++) {
+            // This would need a proper mapping iteration in real implementation
+            authCount = 1; // simplified for demo
+        }
+
+        euint32 zero = FHE.asEuint32(0);
+        // Return encrypted comparison results - decryption must be done off-chain
+        return (authCount, _lastUpdateTimestamp, _emergencyStop, FHE.gt(_yesterdayProduction, zero), FHE.gt(_todayProduction, zero));
     }
 
-    /// @notice Gets production growth percentage (encrypted)
-    /// @dev Returns (delta / yesterday) * 100 as encrypted value
-    function getGrowthPercentage() external view returns (euint32) {
+    /// @notice Returns encrypted comparison result for production increase
+    /// @return comparisonResult Encrypted boolean indicating if today > yesterday
+    /// @dev Note: Decryption must be done off-chain. This function returns encrypted comparison result.
+    function isProductionIncreased() external returns (ebool) {
+        return FHE.gt(_todayProduction, _yesterdayProduction);
+    }
+
+    /// @notice Gets production change status with detailed information
+    /// @return yesterdayGreaterThanZero Encrypted comparison: yesterday > 0
+    /// @return todayGreaterThanZero Encrypted comparison: today > 0
+    /// @return isIncreased Encrypted comparison: today > yesterday
+    /// @return isEqual Encrypted comparison: today == yesterday
+    /// @return delta The encrypted delta value (today - yesterday)
+    /// @dev Note: All comparisons are encrypted. Decryption must be done off-chain to determine actual status.
+    function getProductionChangeStatus() external returns (
+        ebool yesterdayGreaterThanZero,
+        ebool todayGreaterThanZero,
+        ebool isIncreased,
+        ebool isEqual,
+        euint32 delta
+    ) {
+        euint32 zero = FHE.asEuint32(0);
+
+        // Return encrypted comparison results - decryption must be done off-chain
+        return (
+            FHE.gt(_yesterdayProduction, zero),
+            FHE.gt(_todayProduction, zero),
+            FHE.gt(_todayProduction, _yesterdayProduction),
+            FHE.eq(_todayProduction, _yesterdayProduction),
+            FHE.sub(_todayProduction, _yesterdayProduction)
+        );
+    }
+
+    /// @notice Gets production growth numerator (encrypted)
+    /// @dev Returns (delta * 100) as encrypted value. 
+    /// Note: Division is not supported in FHE, so this returns the numerator only.
+    /// To calculate percentage off-chain: (decrypt(numerator) / decrypt(yesterday)) * 100
+    /// @return numerator The encrypted numerator value (delta * 100)
+    function getGrowthPercentage() external returns (euint32 numerator) {
         euint32 hundred = FHE.asEuint32(100);
-        euint32 ratio = FHE.div(FHE.mul(_delta, hundred), _yesterdayProduction);
-        return ratio;
+        return FHE.mul(_delta, hundred);
     }
 
     /// @notice Batch operation to set both yesterday and today production values

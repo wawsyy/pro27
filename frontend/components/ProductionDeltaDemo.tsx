@@ -127,6 +127,9 @@ export const ProductionDeltaDemo = () => {
         <p className="text-sm text-gray-600 mt-2">
           This may take a moment. Please wait...
         </p>
+        <div className="mt-4 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        </div>
       </div>
     );
   }
@@ -182,8 +185,9 @@ export const ProductionDeltaDemo = () => {
                   className={inputClass}
                   value={yesterdayValue}
                   onChange={(e) => setYesterdayValue(e.target.value)}
-                  placeholder="Enter yesterday&apos;s value"
-                  min="0"
+                  placeholder="Enter yesterday&apos;s value (1-1,000,000)"
+                  min="1"
+                  max="1000000"
                 />
               </div>
 
@@ -204,10 +208,11 @@ export const ProductionDeltaDemo = () => {
             <button
               className={`${buttonClass} w-full`}
               disabled={!productionDelta.canSubmit || !yesterdayValue || !todayValue ||
-                       parseInt(yesterdayValue) <= 0 || parseInt(todayValue) <= 0}
+                       parseInt(yesterdayValue) <= 0 || parseInt(todayValue) <= 0 ||
+                       parseInt(yesterdayValue) > 1000000 || parseInt(todayValue) > 1000000}
               onClick={() => {
-                // Note: This would need to be implemented in the hook
-                alert("Batch submission feature coming soon!");
+                productionDelta.submitProduction(parseInt(yesterdayValue), false);
+                setTimeout(() => productionDelta.submitProduction(parseInt(todayValue), true), 2000);
               }}
             >
               {productionDelta.isSubmitting
@@ -255,19 +260,25 @@ export const ProductionDeltaDemo = () => {
               <button
                 className={`${buttonClass} mt-2 w-full`}
                 disabled={!productionDelta.canSubmit || !todayValue || parseInt(todayValue) <= 0}
-                onClick={() => productionDelta.submitProduction(parseInt(todayValue), true)}
-              >
-                {productionDelta.isSubmitting
-                  ? "Submitting..."
-                  : "Submit Today"}
-              </button>
+              onClick={() => productionDelta.submitProduction(parseInt(todayValue), true)}
+              disabled={productionDelta.isSubmitting || !todayValue || parseInt(todayValue) <= 0 || parseInt(todayValue) > 1000000}
+            >
+              {productionDelta.isSubmitting
+                ? "Submitting..."
+                : "Submit Today"}
+            </button>
             </div>
           </div>
         )}
       </div>
 
       <div className="col-span-full mx-20 px-6 pb-6 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-purple-200 shadow-lg">
-        <p className="font-semibold text-black text-lg mt-4 mb-4">Calculate & View Delta</p>
+        <div className="flex justify-between items-center mt-4 mb-4">
+          <p className="font-semibold text-black text-lg">Calculate & View Delta</p>
+          <div className="text-sm text-gray-600">
+            Status: {productionDelta.canCalculate ? "Ready" : "Waiting for data"}
+          </div>
+        </div>
         
         <div className="grid grid-cols-2 gap-4 mb-4">
           <button
@@ -311,9 +322,9 @@ export const ProductionDeltaDemo = () => {
               </button>
             </div>
             <p className="text-2xl font-bold text-purple-700 mt-2">
-              {Number(productionDelta.clear) < 0
+              {Number(productionDelta.clear) > 0
                 ? `Today&apos;s production is ${productionDelta.clear.toString()} units higher than yesterday`
-                : Number(productionDelta.clear) > 0
+                : Number(productionDelta.clear) < 0
                   ? `Today&apos;s production is ${(-Number(productionDelta.clear)).toString()} units lower than yesterday`
                   : "Today&apos;s production matches yesterday&apos;s level"}
             </p>

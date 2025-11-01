@@ -34,6 +34,7 @@ const config: HardhatUserConfig = {
     excludeContracts: [],
     outputFile: "gas-report.txt",
     noColors: true,
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
   },
   networks: {
     hardhat: {
@@ -68,11 +69,6 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
       chainId: 1,
       url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
-    },
-    invalidNetwork: {
-      accounts: [PRIVATE_KEY],
-      chainId: "invalid",
-      url: "invalid_url",
     },
   },
   paths: {
