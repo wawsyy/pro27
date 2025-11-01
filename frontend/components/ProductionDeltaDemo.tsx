@@ -67,6 +67,7 @@ export const ProductionDeltaDemo = () => {
   const [yesterdayValue, setYesterdayValue] = useState<string>("");
   const [todayValue, setTodayValue] = useState<string>("");
   const [showAdvancedStats, setShowAdvancedStats] = useState<boolean>(false);
+  const [useBatchMode, setUseBatchMode] = useState<boolean>(false);
 
   if (!mounted) {
     return null;
@@ -152,55 +153,117 @@ export const ProductionDeltaDemo = () => {
       )}
 
       <div className="col-span-full mx-20 mt-4 px-6 pb-6 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-purple-200 shadow-lg">
-        <p className="font-semibold text-black text-lg mt-4 mb-4">Submit Production Values</p>
-        
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Yesterday's Production
-            </label>
-            <input
-              type="number"
-              className={inputClass}
-              value={yesterdayValue}
-              onChange={(e) => setYesterdayValue(e.target.value)}
-              placeholder="Enter yesterday's value"
-              min="0"
-            />
+        <div className="flex justify-between items-center mt-4 mb-4">
+          <p className="font-semibold text-black text-lg">Submit Production Values</p>
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-700">Batch Mode:</label>
             <button
-              className={`${buttonClass} mt-2 w-full`}
-              disabled={!productionDelta.canSubmit || !yesterdayValue || parseInt(yesterdayValue) <= 0}
-              onClick={() => productionDelta.submitProduction(parseInt(yesterdayValue), false)}
+              className={`px-3 py-1 rounded text-sm transition-colors ${
+                useBatchMode
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+              onClick={() => setUseBatchMode(!useBatchMode)}
             >
-              {productionDelta.isSubmitting
-                ? "Submitting..."
-                : "Submit Yesterday"}
-            </button>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Today's Production
-            </label>
-            <input
-              type="number"
-              className={inputClass}
-              value={todayValue}
-              onChange={(e) => setTodayValue(e.target.value)}
-              placeholder="Enter today's value"
-              min="0"
-            />
-            <button
-              className={`${buttonClass} mt-2 w-full`}
-              disabled={!productionDelta.canSubmit || !todayValue || parseInt(todayValue) <= 0}
-              onClick={() => productionDelta.submitProduction(parseInt(todayValue), true)}
-            >
-              {productionDelta.isSubmitting
-                ? "Submitting..."
-                : "Submit Today"}
+              {useBatchMode ? "ON" : "OFF"}
             </button>
           </div>
         </div>
+        
+        {useBatchMode ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Yesterday's Production
+                </label>
+                <input
+                  type="number"
+                  className={inputClass}
+                  value={yesterdayValue}
+                  onChange={(e) => setYesterdayValue(e.target.value)}
+                  placeholder="Enter yesterday's value"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Today's Production
+                </label>
+                <input
+                  type="number"
+                  className={inputClass}
+                  value={todayValue}
+                  onChange={(e) => setTodayValue(e.target.value)}
+                  placeholder="Enter today's value"
+                  min="0"
+                />
+              </div>
+            </div>
+            <button
+              className={`${buttonClass} w-full`}
+              disabled={!productionDelta.canSubmit || !yesterdayValue || !todayValue ||
+                       parseInt(yesterdayValue) <= 0 || parseInt(todayValue) <= 0}
+              onClick={() => {
+                // Note: This would need to be implemented in the hook
+                alert("Batch submission feature coming soon!");
+              }}
+            >
+              {productionDelta.isSubmitting
+                ? "Submitting Both..."
+                : "Submit Both Values"}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Yesterday's Production
+              </label>
+              <input
+                type="number"
+                className={inputClass}
+                value={yesterdayValue}
+                onChange={(e) => setYesterdayValue(e.target.value)}
+                placeholder="Enter yesterday's value"
+                min="0"
+              />
+              <button
+                className={`${buttonClass} mt-2 w-full`}
+                disabled={!productionDelta.canSubmit || !yesterdayValue || parseInt(yesterdayValue) <= 0}
+                onClick={() => productionDelta.submitProduction(parseInt(yesterdayValue), false)}
+              >
+                {productionDelta.isSubmitting
+                  ? "Submitting..."
+                  : "Submit Yesterday"}
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Today's Production
+              </label>
+              <input
+                type="number"
+                className={inputClass}
+                value={todayValue}
+                onChange={(e) => setTodayValue(e.target.value)}
+                placeholder="Enter today's value"
+                min="0"
+              />
+              <button
+                className={`${buttonClass} mt-2 w-full`}
+                disabled={!productionDelta.canSubmit || !todayValue || parseInt(todayValue) <= 0}
+                onClick={() => productionDelta.submitProduction(parseInt(todayValue), true)}
+              >
+                {productionDelta.isSubmitting
+                  ? "Submitting..."
+                  : "Submit Today"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="col-span-full mx-20 px-6 pb-6 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-purple-200 shadow-lg">
