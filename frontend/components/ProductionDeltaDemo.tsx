@@ -66,6 +66,7 @@ export const ProductionDeltaDemo = () => {
 
   const [yesterdayValue, setYesterdayValue] = useState<string>("");
   const [todayValue, setTodayValue] = useState<string>("");
+  const [showAdvancedStats, setShowAdvancedStats] = useState<boolean>(false);
 
   if (!mounted) {
     return null;
@@ -235,16 +236,36 @@ export const ProductionDeltaDemo = () => {
 
         {productionDelta.isDecrypted && productionDelta.clear !== undefined && (
           <div className="mt-4 p-4 bg-purple-50 rounded-lg border-2 border-purple-300">
-            <p className="text-lg font-semibold text-purple-900">
-              Result:
-            </p>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-lg font-semibold text-purple-900">
+                Analysis Result:
+              </p>
+              <button
+                className="text-sm px-3 py-1 bg-purple-200 hover:bg-purple-300 rounded transition-colors"
+                onClick={() => setShowAdvancedStats(!showAdvancedStats)}
+              >
+                {showAdvancedStats ? "Hide Details" : "Show Details"}
+              </button>
+            </div>
             <p className="text-2xl font-bold text-purple-700 mt-2">
               {Number(productionDelta.clear) > 0
-                ? `Today's production is ${productionDelta.clear.toString()} units more than yesterday`
+                ? `Today's production is ${productionDelta.clear.toString()} units higher than yesterday`
                 : Number(productionDelta.clear) < 0
-                  ? `Today's production is ${(-Number(productionDelta.clear)).toString()} units less than yesterday`
-                  : "Today's production is the same as yesterday"}
+                  ? `Today's production is ${(-Number(productionDelta.clear)).toString()} units lower than yesterday`
+                  : "Today's production matches yesterday's level"}
             </p>
+            {showAdvancedStats && (
+              <div className="mt-4 p-3 bg-white rounded border">
+                <p className="text-sm text-gray-600">
+                  <strong>Trend:</strong>{" "}
+                  {Number(productionDelta.clear) > 0 ? "📈 Increasing" :
+                   Number(productionDelta.clear) < 0 ? "📉 Decreasing" : "➡️ Stable"}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  <strong>Change Magnitude:</strong> {Math.abs(Number(productionDelta.clear))} units
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
