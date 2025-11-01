@@ -70,6 +70,18 @@ const config: HardhatUserConfig = {
       chainId: 1,
       url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
     },
+    polygon: {
+      accounts: [PRIVATE_KEY],
+      chainId: 137,
+      url: `https://polygon-mainnet.infura.io/v3/${INFURA_API_KEY}`,
+      gasPrice: 40000000000, // 40 gwei
+    },
+    polygonMumbai: {
+      accounts: [PRIVATE_KEY],
+      chainId: 80001,
+      url: `https://polygon-mumbai.infura.io/v3/${INFURA_API_KEY}`,
+      gasPrice: 20000000000, // 20 gwei
+    },
   },
   paths: {
     artifacts: "./artifacts",
