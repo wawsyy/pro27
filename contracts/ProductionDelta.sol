@@ -60,5 +60,19 @@ contract ProductionDelta is SepoliaConfig {
     function getDelta() external view returns (euint32) {
         return _delta;
     }
+
+    /// @notice Checks if production increased compared to yesterday
+    /// @return true if today production > yesterday production, false otherwise
+    function isProductionIncreased() external view returns (bool) {
+        return FHE.decrypt(FHE.gt(_todayProduction, _yesterdayProduction));
+    }
+
+    /// @notice Gets production growth percentage (encrypted)
+    /// @dev Returns (delta / yesterday) * 100 as encrypted value
+    function getGrowthPercentage() external view returns (euint32) {
+        euint32 hundred = FHE.asEuint32(100);
+        euint32 ratio = FHE.div(FHE.mul(_delta, hundred), _yesterdayProduction);
+        return ratio;
+    }
 }
 
