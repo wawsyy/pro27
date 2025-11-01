@@ -74,5 +74,42 @@ contract ProductionDelta is SepoliaConfig {
         euint32 ratio = FHE.div(FHE.mul(_delta, hundred), _yesterdayProduction);
         return ratio;
     }
+
+    /// @notice Batch operation to set both yesterday and today production values
+    /// @param yesterdayInput the encrypted yesterday production value
+    /// @param todayInput the encrypted today production value
+    /// @param yesterdayProof the input proof for yesterday value
+    /// @param todayProof the input proof for today value
+    function setBothProductions(
+        externalEuint32 yesterdayInput,
+        externalEuint32 todayInput,
+        bytes calldata yesterdayProof,
+        bytes calldata todayProof
+    ) external {
+        euint32 encryptedYesterday = FHE.fromExternal(yesterdayInput, yesterdayProof);
+        euint32 encryptedToday = FHE.fromExternal(todayInput, todayProof);
+
+        _yesterdayProduction = encryptedYesterday;
+        _todayProduction = encryptedToday;
+
+        FHE.allowThis(_yesterdayProduction);
+        FHE.allowThis(_todayProduction);
+        FHE.allow(_yesterdayProduction, msg.sender);
+        FHE.allow(_todayProduction, msg.sender);
+    }
+
+    /// @notice Resets all stored values to zero
+    function resetValues() external {
+        _yesterdayProduction = FHE.asEuint32(0);
+        _todayProduction = FHE.asEuint32(0);
+        _delta = FHE.asEuint32(0);
+
+        FHE.allowThis(_yesterdayProduction);
+        FHE.allowThis(_todayProduction);
+        FHE.allowThis(_delta);
+        FHE.allow(_yesterdayProduction, msg.sender);
+        FHE.allow(_todayProduction, msg.sender);
+        FHE.allow(_delta, msg.sender);
+    }
 }
 
