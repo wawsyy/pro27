@@ -68,31 +68,34 @@ export const ProductionDeltaDemo = () => {
   const [todayValue, setTodayValue] = useState<string>("");
   const [showAdvancedStats, setShowAdvancedStats] = useState<boolean>(false);
   const [useBatchMode, setUseBatchMode] = useState<boolean>(false);
+  const [resetConfirm, setResetConfirm] = useState<boolean>(false);
 
   if (!mounted) {
     return null;
   }
 
   const buttonClass =
-    "inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 font-semibold text-purple-700 shadow-sm " +
-    "transition-colors duration-200 hover:bg-purple-50 active:bg-purple-100 " +
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 " +
+    "inline-flex items-center justify-center rounded-xl bg-black px-4 py-4 font-semibold text-white shadow-sm " +
+    "transition-colors duration-200 hover:bg-blue-700 active:bg-blue-800 " +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 " +
     "disabled:opacity-50 disabled:pointer-events-none";
 
   const inputClass =
-    "w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500";
+    "w-full px-4 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black";
+
+  const titleClass = "font-semibold text-black text-lg mt-4";
 
   if (!isConnected) {
     return (
       <div className="mx-auto text-center">
-        <p className="text-white text-xl mb-4">Please connect your wallet to continue</p>
+        <p className="text-black text-xl mb-4">Please connect your wallet to continue</p>
       </div>
     );
   }
 
   if (productionDelta.isDeployed === false) {
     return (
-      <div className="mx-auto text-center bg-white p-6 rounded-lg">
+      <div className="mx-auto text-center bg-white p-6 rounded-lg border-2 border-black">
         <p className="text-red-600 font-semibold">
           ProductionDelta contract not deployed on chainId={chainId}. Please deploy first.
         </p>
@@ -103,14 +106,14 @@ export const ProductionDeltaDemo = () => {
   // Check FHEVM status - only show critical errors, ignore network fetch errors
   if (fhevmStatus === "error" && fhevmError && !fhevmError.message?.includes('Failed to fetch')) {
     return (
-      <div className="mx-auto text-center bg-white p-6 rounded-lg">
+      <div className="mx-auto text-center bg-white p-6 rounded-lg border-2 border-black">
         <p className="text-red-600 font-semibold mb-2">
           FHEVM Initialization Failed
         </p>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-black mb-4">
           {fhevmError.message || "Unable to initialize FHEVM. Please check your network connection."}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-black">
           For Sepolia testnet, FHEVM requires connection to relayer.testnet.zama.cloud.
           If the relayer is unavailable, try using local Hardhat node (chainId: 31337) instead.
         </p>
@@ -120,34 +123,34 @@ export const ProductionDeltaDemo = () => {
 
   if (fhevmStatus !== "ready" || !fhevmInstance) {
     return (
-      <div className="mx-auto text-center bg-white p-6 rounded-lg">
-        <p className="text-blue-600 font-semibold">
+      <div className="mx-auto text-center bg-white p-6 rounded-lg border-2 border-black">
+        <p className="text-black font-semibold">
           Initializing FHEVM... ({fhevmStatus})
         </p>
-        <p className="text-sm text-gray-600 mt-2">
+        <p className="text-sm text-black mt-2">
           This may take a moment. Please wait...
         </p>
         <div className="mt-4 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="grid w-full gap-6">
-      <div className="col-span-full mx-20 bg-white/90 backdrop-blur-sm text-purple-900 rounded-lg p-6 shadow-lg">
-        <p className="font-semibold text-3xl mb-2">
-          Production Delta Tracker
-        </p>
-        <p className="text-purple-700 text-sm">
-          Encrypted production difference tracking - Calculate trends without revealing actual values
+    <div className="grid w-full gap-4">
+      <div className="col-span-full mx-20 bg-black text-white">
+        <p className="font-semibold text-3xl m-5">
+          Production Delta Tracker -{" "}
+          <span className="font-mono font-normal text-gray-400">
+            ProductionDelta.sol
+          </span>
         </p>
       </div>
 
       {chainId === 11155111 && fhevmStatus === "ready" && (
-        <div className="col-span-full mx-20 px-4 py-3 rounded-lg bg-yellow-50 border-2 border-yellow-300 shadow-lg">
-          <p className="text-sm text-yellow-800">
+        <div className="col-span-full mx-20 px-4 py-3 rounded-lg bg-white border-2 border-black">
+          <p className="text-sm text-black">
             <strong>Note:</strong> On Sepolia testnet, FHEVM requires the relayer service. 
             If submission fails, the relayer may be temporarily unavailable. 
             For testing, consider using local Hardhat node (chainId: 31337) which uses mock mode and doesn&apos;t require relayer.
@@ -155,16 +158,16 @@ export const ProductionDeltaDemo = () => {
         </div>
       )}
 
-      <div className="col-span-full mx-20 mt-4 px-6 pb-6 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-purple-200 shadow-lg">
-        <div className="flex justify-between items-center mt-4 mb-4">
-          <p className="font-semibold text-black text-lg">Submit Production Values</p>
+      <div className="col-span-full mx-20 mt-4 px-5 pb-4 rounded-lg bg-white border-2 border-black">
+        <p className={titleClass}>Submit Production Values</p>
+        <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-700">Batch Mode:</label>
+            <label className="text-sm text-black">Batch Mode:</label>
             <button
-              className={`px-3 py-1 rounded text-sm transition-colors ${
+              className={`px-3 py-1 rounded text-sm transition-colors border-2 border-black ${
                 useBatchMode
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  ? "bg-black text-white"
+                  : "bg-white text-black hover:bg-gray-100"
               }`}
               onClick={() => setUseBatchMode(!useBatchMode)}
             >
@@ -177,7 +180,7 @@ export const ProductionDeltaDemo = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Yesterday&apos;s Production
                 </label>
                 <input
@@ -192,7 +195,7 @@ export const ProductionDeltaDemo = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Today&apos;s Production
                 </label>
                 <input
@@ -223,7 +226,7 @@ export const ProductionDeltaDemo = () => {
         ) : (
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Yesterday&apos;s Production
               </label>
               <input
@@ -246,7 +249,7 @@ export const ProductionDeltaDemo = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Today&apos;s Production
               </label>
               <input
@@ -259,23 +262,52 @@ export const ProductionDeltaDemo = () => {
               />
               <button
                 className={`${buttonClass} mt-2 w-full`}
-                disabled={!productionDelta.canSubmit || !todayValue || parseInt(todayValue) <= 0}
-              onClick={() => productionDelta.submitProduction(parseInt(todayValue), true)}
-              disabled={productionDelta.isSubmitting || !todayValue || parseInt(todayValue) <= 0 || parseInt(todayValue) > 1000000}
-            >
-              {productionDelta.isSubmitting
-                ? "Submitting..."
-                : "Submit Today"}
-            </button>
+                disabled={productionDelta.isSubmitting || !todayValue || parseInt(todayValue) <= 0 || parseInt(todayValue) > 1000000}
+                onClick={() => productionDelta.submitProduction(parseInt(todayValue), true)}
+              >
+                {productionDelta.isSubmitting
+                  ? "Submitting..."
+                  : "Submit Today"}
+              </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="col-span-full mx-20 px-6 pb-6 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-purple-200 shadow-lg">
-        <div className="flex justify-between items-center mt-4 mb-4">
-          <p className="font-semibold text-black text-lg">Calculate & View Delta</p>
-          <div className="text-sm text-gray-600">
+      <div className="col-span-full mx-20 px-5 pb-4 rounded-lg bg-white border-2 border-black">
+        <div className="flex justify-between items-center mb-4">
+          <p className={titleClass}>Calculate & View Delta</p>
+          <div className="flex space-x-2">
+            {!resetConfirm ? (
+              <button
+                className={`${buttonClass} bg-red-600 hover:bg-red-700`}
+                onClick={() => setResetConfirm(true)}
+              >
+                Reset Values
+              </button>
+            ) : (
+              <div className="flex space-x-2">
+                <button
+                  className={`${buttonClass} bg-gray-600 hover:bg-gray-700`}
+                  onClick={() => setResetConfirm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={`${buttonClass} bg-red-600 hover:bg-red-700`}
+                  onClick={() => {
+                    productionDelta.resetValues();
+                    setResetConfirm(false);
+                  }}
+                >
+                  Confirm Reset
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-sm text-black">
             Status: {productionDelta.canCalculate ? "Ready" : "Waiting for data"}
           </div>
         </div>
@@ -309,19 +341,19 @@ export const ProductionDeltaDemo = () => {
         </div>
 
         {productionDelta.isDecrypted && productionDelta.clear !== undefined && (
-          <div className="mt-4 p-4 bg-purple-50 rounded-lg border-2 border-purple-300">
+          <div className="mt-4 p-4 bg-white rounded-lg border-2 border-black">
             <div className="flex justify-between items-center mb-2">
-              <p className="text-lg font-semibold text-purple-900">
+              <p className="text-lg font-semibold text-black">
                 Analysis Result:
               </p>
               <button
-                className="text-sm px-3 py-1 bg-purple-200 hover:bg-purple-300 rounded transition-colors"
+                className="text-sm px-3 py-1 bg-black text-white hover:bg-blue-700 rounded transition-colors border-2 border-black"
                 onClick={() => setShowAdvancedStats(!showAdvancedStats)}
               >
                 {showAdvancedStats ? "Hide Details" : "Show Details"}
               </button>
             </div>
-            <p className="text-2xl font-bold text-purple-700 mt-2">
+            <p className="text-2xl font-bold text-black mt-2">
               {Number(productionDelta.clear) > 0
                 ? `Today&apos;s production is ${productionDelta.clear.toString()} units higher than yesterday`
                 : Number(productionDelta.clear) < 0
@@ -329,13 +361,13 @@ export const ProductionDeltaDemo = () => {
                   : "Today&apos;s production matches yesterday&apos;s level"}
             </p>
             {showAdvancedStats && (
-              <div className="mt-4 p-3 bg-white rounded border">
-                <p className="text-sm text-gray-600">
+              <div className="mt-4 p-3 bg-white rounded border-2 border-black">
+                <p className="text-sm text-black">
                   <strong>Trend:</strong>{" "}
                   {Number(productionDelta.clear) > 0 ? "📈 Increasing" :
                    Number(productionDelta.clear) < 0 ? "📉 Decreasing" : "➡️ Stable"}
                 </p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-black mt-1">
                   <strong>Change Magnitude:</strong> {Math.abs(Number(productionDelta.clear))} units
                 </p>
               </div>
