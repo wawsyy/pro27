@@ -41,6 +41,31 @@ The contract has been deployed on Sepolia testnet for testing:
 - **Chain ID**: 11155111
 - **Block Explorer**: [Etherscan Sepolia](https://sepolia.etherscan.io/address/0x3585B7E5Cfe9d31000009E3efc8Eb77aee55246f)
 
+## Troubleshooting
+
+### Common Issues
+
+#### FHEVM Initialization Failed
+If you see "FHEVM Initialization Failed":
+- **On Sepolia**: Ensure the relayer service at `relayer.testnet.zama.cloud` is available
+- **On Local**: Use Hardhat node with FHEVM mock mode (`npm run node:fhevm`)
+- **Network Issues**: Check your internet connection and try again
+
+#### Wallet Connection Issues
+- Ensure Rainbow wallet extension is installed and updated
+- Try refreshing the page and reconnecting
+- Check if you're on the correct network (Sepolia for testnet, Localhost for development)
+
+#### Transaction Failures
+- **Insufficient Gas**: Increase gas limit in wallet settings
+- **Network Congestion**: Try again later or use a different network
+- **Contract Errors**: Check browser console for detailed error messages
+
+#### Build Issues
+- Run `npm install` to ensure all dependencies are installed
+- Clear cache with `npm run clean` and rebuild
+- Check Node.js version compatibility (requires v20+)
+
 ## Quick Start
 
 ### Prerequisites
