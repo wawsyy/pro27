@@ -72,8 +72,18 @@
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
     "test": "hardhat test",
     "test:sepolia": "hardhat test --network sepolia",
+    "test:watch": "hardhat test --watch",
     "build:ts": "tsc --project tsconfig.json",
-    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
+    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain",
+    "deploy:localhost": "hardhat deploy --network localhost",
+    "deploy:sepolia": "hardhat deploy --network sepolia",
+    "deploy:mumbai": "hardhat deploy --network polygonMumbai",
+    "deploy:polygon": "hardhat deploy --network polygon",
+    "node": "hardhat node",
+    "node:fhevm": "hardhat node --fhevm",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "dev": "concurrently \"npm run node:fhevm\" \"npm run frontend:dev\""
   },
   "overrides": {
     "ws@>=7.0.0 <7.5.10": ">=7.5.10",
