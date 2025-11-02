@@ -11,6 +11,9 @@ contract ProductionDelta is SepoliaConfig {
     euint32 private _yesterdayProduction;
     euint32 private _todayProduction;
     euint32 private _delta;
+    euint32 private _lastCalculatedDelta;
+    uint256 private _lastUpdateTimestamp;
+    address private _lastUpdater;
 
     /// @notice Stores yesterday's production value (encrypted)
     /// @param inputEuint32 the encrypted yesterday production value
@@ -38,6 +41,9 @@ contract ProductionDelta is SepoliaConfig {
     /// @dev This function computes the encrypted difference without revealing individual values
     function calculateDelta() external {
         _delta = FHE.sub(_todayProduction, _yesterdayProduction);
+        _lastCalculatedDelta = _delta;
+        _lastUpdateTimestamp = block.timestamp;
+        _lastUpdater = msg.sender;
 
         FHE.allowThis(_delta);
         FHE.allow(_delta, msg.sender);
@@ -59,6 +65,28 @@ contract ProductionDelta is SepoliaConfig {
     /// @return The encrypted delta value (today - yesterday)
     function getDelta() external view returns (euint32) {
         return _delta;
+    }
+
+    /// @notice Returns the last calculated delta value
+    /// @return The last calculated encrypted delta value
+    function getLastCalculatedDelta() external view returns (euint32) {
+        return _lastCalculatedDelta;
+    }
+
+    /// @notice Returns metadata about the last calculation
+    /// @return timestamp The timestamp of the last calculation
+    /// @return updater The address that performed the last calculation
+    function getLastUpdateInfo() external view returns (uint256 timestamp, address updater) {
+        return (_lastUpdateTimestamp, _lastUpdater);
+    }
+
+    /// @notice Validates that both production values are set and greater than zero
+    /// @return true if both values are properly set, false otherwise
+    function validateProductionData() external view returns (bool) {
+        euint32 zero = FHE.asEuint32(0);
+        bool yesterdayValid = FHE.decrypt(FHE.gt(_yesterdayProduction, zero));
+        bool todayValid = FHE.decrypt(FHE.gt(_todayProduction, zero));
+        return yesterdayValid && todayValid;
     }
 
     /// @notice Checks if production increased compared to yesterday
