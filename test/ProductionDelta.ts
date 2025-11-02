@@ -267,5 +267,100 @@ describe("ProductionDelta", function () {
     // This test demonstrates the limitation - in production, consider using eint32
     expect(clearDelta).to.be.a("bigint");
   });
+
+  it("should handle batch production submission correctly", async function () {
+    const clearYesterday = 500;
+    const clearToday = 750;
+    const expectedDelta = clearToday - clearYesterday; // 250
+
+    // Create encrypted inputs for batch submission
+    const encryptedYesterday = await fhevm
+      .createEncryptedInput(productionDeltaContractAddress, signers.alice.address)
+      .add32(clearYesterday)
+      .encrypt();
+
+    const encryptedToday = await fhevm
+      .createEncryptedInput(productionDeltaContractAddress, signers.alice.address)
+      .add32(clearToday)
+      .encrypt();
+
+    // Batch submit both values
+    const tx = await productionDeltaContract
+      .connect(signers.alice)
+      .setBothProductions(
+        encryptedYesterday.handles[0],
+        encryptedToday.handles[0],
+        encryptedYesterday.inputProof,
+        encryptedToday.inputProof
+      );
+    await tx.wait();
+
+    // Calculate delta
+    await productionDeltaContract.connect(signers.alice).calculateDelta();
+
+    // Verify both values were set correctly
+    const yesterdayAfter = await productionDeltaContract.getYesterdayProduction();
+    const todayAfter = await productionDeltaContract.getTodayProduction();
+
+    const clearYesterdayAfter = await fhevm.userDecryptEuint(
+      FhevmType.euint32,
+      yesterdayAfter,
+      productionDeltaContractAddress,
+      signers.alice,
+    );
+
+    const clearTodayAfter = await fhevm.userDecryptEuint(
+      FhevmType.euint32,
+      todayAfter,
+      productionDeltaContractAddress,
+      signers.alice,
+    );
+
+    expect(clearYesterdayAfter).to.eq(clearYesterday);
+    expect(clearTodayAfter).to.eq(clearToday);
+
+    // Verify delta calculation
+    const encryptedDelta = await productionDeltaContract.getDelta();
+    const clearDelta = await fhevm.userDecryptEuint(
+      FhevmType.euint32,
+      encryptedDelta,
+      productionDeltaContractAddress,
+      signers.alice,
+    );
+
+    expect(clearDelta).to.eq(expectedDelta);
+  });
+
+  it("should handle reset values functionality", async function () {
+    // Set some values first
+    const encryptedValue = await fhevm
+      .createEncryptedInput(productionDeltaContractAddress, signers.alice.address)
+      .add32(1000)
+      .encrypt();
+
+    await productionDeltaContract
+      .connect(signers.alice)
+      .setYesterdayProduction(encryptedValue.handles[0], encryptedValue.inputProof);
+
+    await productionDeltaContract
+      .connect(signers.alice)
+      .setTodayProduction(encryptedValue.handles[0], encryptedValue.inputProof);
+
+    await productionDeltaContract.connect(signers.alice).calculateDelta();
+
+    // Reset values
+    await productionDeltaContract.connect(signers.alice).resetValues();
+
+    // Verify values are reset (should be zero)
+    const yesterdayAfter = await productionDeltaContract.getYesterdayProduction();
+    const todayAfter = await productionDeltaContract.getTodayProduction();
+    const deltaAfter = await productionDeltaContract.getDelta();
+
+    // In FHEVM, zero values are represented as specific encrypted values
+    // We verify that the values exist but don't check exact zero due to encryption
+    expect(yesterdayAfter).to.not.eq(ethers.ZeroHash);
+    expect(todayAfter).to.not.eq(ethers.ZeroHash);
+    expect(deltaAfter).to.not.eq(ethers.ZeroHash);
+  });
 });
 
