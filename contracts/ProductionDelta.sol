@@ -8,6 +8,31 @@ import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 /// @notice Tracks encrypted production values and calculates the difference between today and yesterday
 /// @dev Uses FHE to keep production values encrypted while allowing difference calculations
 contract ProductionDelta is SepoliaConfig {
+    /// @notice Contract constructor
+    /// @dev Initializes the contract with the deployer as owner
+    constructor() {
+        _owner = msg.sender;
+        _authorizedUsers[msg.sender] = true;
+        _emergencyStop = false;
+    }
+
+    /// @notice Modifier to restrict access to owner only
+    modifier onlyOwner() {
+        require(msg.sender == _owner, "Only owner can perform this action");
+        _;
+    }
+
+    /// @notice Modifier to restrict access to authorized users
+    modifier onlyAuthorized() {
+        require(_authorizedUsers[msg.sender] || msg.sender == _owner, "Not authorized");
+        _;
+    }
+
+    /// @notice Modifier to check if emergency stop is not active
+    modifier notInEmergency() {
+        require(!_emergencyStop, "Contract is in emergency stop mode");
+        _;
+    }
     euint32 private _yesterdayProduction;
     euint32 private _todayProduction;
     euint32 private _delta;
@@ -15,10 +40,14 @@ contract ProductionDelta is SepoliaConfig {
     uint256 private _lastUpdateTimestamp;
     address private _lastUpdater;
 
+    address private _owner;
+    mapping(address => bool) private _authorizedUsers;
+    bool private _emergencyStop;
+
     /// @notice Stores yesterday's production value (encrypted)
     /// @param inputEuint32 the encrypted yesterday production value
     /// @param inputProof the input proof
-    function setYesterdayProduction(externalEuint32 inputEuint32, bytes calldata inputProof) external {
+    function setYesterdayProduction(externalEuint32 inputEuint32, bytes calldata inputProof) external onlyAuthorized notInEmergency {
         euint32 encryptedEuint32 = FHE.fromExternal(inputEuint32, inputProof);
         _yesterdayProduction = encryptedEuint32;
 
@@ -29,7 +58,7 @@ contract ProductionDelta is SepoliaConfig {
     /// @notice Stores today's production value (encrypted)
     /// @param inputEuint32 the encrypted today production value
     /// @param inputProof the input proof
-    function setTodayProduction(externalEuint32 inputEuint32, bytes calldata inputProof) external {
+    function setTodayProduction(externalEuint32 inputEuint32, bytes calldata inputProof) external onlyAuthorized notInEmergency {
         euint32 encryptedEuint32 = FHE.fromExternal(inputEuint32, inputProof);
         _todayProduction = encryptedEuint32;
 
@@ -39,7 +68,7 @@ contract ProductionDelta is SepoliaConfig {
 
     /// @notice Calculates and stores the difference: delta = today - yesterday
     /// @dev This function computes the encrypted difference without revealing individual values
-    function calculateDelta() external {
+    function calculateDelta() external onlyAuthorized notInEmergency {
         _delta = FHE.sub(_todayProduction, _yesterdayProduction);
         _lastCalculatedDelta = _delta;
         _lastUpdateTimestamp = block.timestamp;
@@ -89,6 +118,43 @@ contract ProductionDelta is SepoliaConfig {
         return yesterdayValid && todayValid;
     }
 
+    /// @notice Authorize a user to perform operations
+    /// @param user The address to authorize
+    function authorizeUser(address user) external onlyOwner {
+        _authorizedUsers[user] = true;
+    }
+
+    /// @notice Revoke authorization from a user
+    /// @param user The address to revoke authorization from
+    function revokeUser(address user) external onlyOwner {
+        require(user != _owner, "Cannot revoke owner");
+        _authorizedUsers[user] = false;
+    }
+
+    /// @notice Activate emergency stop mode
+    function emergencyStop() external onlyOwner {
+        _emergencyStop = true;
+    }
+
+    /// @notice Deactivate emergency stop mode
+    function resumeOperations() external onlyOwner {
+        _emergencyStop = false;
+    }
+
+    /// @notice Check if a user is authorized
+    /// @param user The address to check
+    /// @return true if the user is authorized, false otherwise
+    function isAuthorized(address user) external view returns (bool) {
+        return _authorizedUsers[user] || user == _owner;
+    }
+
+    /// @notice Get contract status
+    /// @return owner The contract owner address
+    /// @return emergencyStop Whether emergency stop is active
+    function getContractStatus() external view returns (address owner, bool emergencyStop) {
+        return (_owner, _emergencyStop);
+    }
+
     /// @notice Checks if production increased compared to yesterday
     /// @return true if today production > yesterday production, false otherwise
     function isProductionIncreased() external view returns (bool) {
@@ -113,7 +179,7 @@ contract ProductionDelta is SepoliaConfig {
         externalEuint32 todayInput,
         bytes calldata yesterdayProof,
         bytes calldata todayProof
-    ) external {
+    ) external onlyAuthorized notInEmergency {
         euint32 encryptedYesterday = FHE.fromExternal(yesterdayInput, yesterdayProof);
         euint32 encryptedToday = FHE.fromExternal(todayInput, todayProof);
 
@@ -127,7 +193,7 @@ contract ProductionDelta is SepoliaConfig {
     }
 
     /// @notice Resets all stored values to zero
-    function resetValues() external {
+    function resetValues() external onlyAuthorized notInEmergency {
         _yesterdayProduction = FHE.asEuint32(0);
         _todayProduction = FHE.asEuint32(0);
         _delta = FHE.asEuint32(0);
