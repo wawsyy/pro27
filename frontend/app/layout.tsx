@@ -18,19 +18,26 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`production-delta-bg text-foreground antialiased`}>
         <ErrorSuppressor />
-        <div className="fixed inset-0 w-full h-full production-delta-bg z-[-20] min-w-[850px]"></div>
+        <div className="fixed inset-0 w-full h-full production-delta-bg z-[-20]"></div>
         <Providers>
-          <main className="flex flex-col max-w-screen-lg mx-auto pb-20 min-w-[850px]">
-            <nav className="flex w-full px-3 md:px-0 h-fit py-10 justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="w-15 h-15 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">🔒</span>
+          <main className="flex flex-col max-w-screen-lg mx-auto pb-8 px-4 sm:px-6 lg:px-8">
+            <nav className="flex w-full h-fit py-6 sm:py-10 justify-between items-center">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-12 h-12 sm:w-15 sm:h-15 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                  <span className="text-xl sm:text-2xl">🔒</span>
                 </div>
-                <h1 className="text-2xl font-bold text-white">Production Delta FHE</h1>
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">Production Delta FHE</h1>
+                  <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Encrypted Analytics</p>
+                </div>
               </div>
-              <ConnectButton />
+              <div className="flex items-center">
+                <ConnectButton />
+              </div>
             </nav>
-            {children}
+            <div className="flex-1">
+              {children}
+            </div>
           </main>
         </Providers>
       </body>
