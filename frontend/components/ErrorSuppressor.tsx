@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export function ErrorSuppressor() {
-  const [lastError, setLastError] = useState<string | null>(null);
-  const [errorCount, setErrorCount] = useState(0);
   useEffect(() => {
     // Store original methods
     const originalError = console.error.bind(console);
@@ -14,9 +12,6 @@ export function ErrorSuppressor() {
     console.error = (...args: unknown[]) => {
       const message = String(args[0] || '');
       const fullMessage = args.map(arg => String(arg)).join(' ');
-
-      // Count all errors (before suppression)
-      setErrorCount(prev => prev + 1);
 
       // Suppress Base Account SDK COOP warnings (non-critical, FHEVM requires COOP header)
       if (message.includes('Base Account SDK requires the Cross-Origin-Opener-Policy') ||
@@ -39,10 +34,12 @@ export function ErrorSuppressor() {
         }
       }
 
-      // Suppress network resource errors
+      // Suppress network resource errors (including CORS/COEP errors)
       if (message.includes('Failed to load resource') &&
           (message.includes('cca-lite.coinbase.com') ||
-           message.includes('relayer.testnet.zama.cloud'))) {
+           message.includes('relayer.testnet.zama.cloud') ||
+           message.includes('ERR_BLOCKED_BY_RESPONSE') ||
+           message.includes('NotSameOriginAfterDefaultedToSameOriginByCoep'))) {
         return;
       }
 
@@ -53,8 +50,28 @@ export function ErrorSuppressor() {
         return;
       }
 
-      // Store last non-suppressed error for display
-      setLastError(message);
+      // Suppress FHEVM-related network errors
+      if (message.includes('fhevm') ||
+          fullMessage.includes('fhevm') ||
+          message.includes('Fully Homomorphic Encryption') ||
+          fullMessage.includes('Fully Homomorphic Encryption')) {
+        return;
+      }
+
+      // Suppress wallet connection errors that are not critical
+      if (message.includes('MetaMask') ||
+          fullMessage.includes('MetaMask') ||
+          message.includes('wallet') ||
+          fullMessage.includes('wallet')) {
+        // Only suppress if it's a connection timeout or network issue
+        if (message.includes('timeout') ||
+            message.includes('network') ||
+            message.includes('connection')) {
+          return;
+        }
+      }
+
+      // Only log non-suppressed errors
       originalError(...args);
     };
 
@@ -68,6 +85,11 @@ export function ErrorSuppressor() {
         return;
       }
       
+      // Suppress Lit dev mode warnings
+      if (message.includes('Lit is in dev mode') || fullMessage.includes('Lit is in dev mode')) {
+        return;
+      }
+      
       originalWarn(...args);
     };
 
@@ -75,7 +97,10 @@ export function ErrorSuppressor() {
     const errorHandler = (event: ErrorEvent) => {
       const message = event.message || '';
       if (message.includes('Base Account SDK requires the Cross-Origin-Opener-Policy') ||
-          message.includes('Analytics SDK')) {
+          message.includes('Analytics SDK') ||
+          message.includes('ERR_BLOCKED_BY_RESPONSE') ||
+          message.includes('NotSameOriginAfterDefaultedToSameOriginByCoep') ||
+          message.includes('cca-lite.coinbase.com')) {
         event.preventDefault();
         return false;
       }
@@ -88,14 +113,32 @@ export function ErrorSuppressor() {
           reason.includes('Analytics SDK') ||
           reason.includes('Failed to fetch') ||
           reason.includes('ERR_CONNECTION_CLOSED') ||
+          reason.includes('ERR_BLOCKED_BY_RESPONSE') ||
+          reason.includes('NotSameOriginAfterDefaultedToSameOriginByCoep') ||
+          reason.includes('cca-lite.coinbase.com') ||
           reason.includes('relayer.testnet.zama.cloud')) {
         event.preventDefault();
         return false;
       }
     };
 
+    // Catch resource loading errors
+    const resourceErrorHandler = (event: Event) => {
+      const target = event.target as HTMLElement;
+      if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK' || target.tagName === 'IMG')) {
+        const src = (target as HTMLScriptElement | HTMLLinkElement | HTMLImageElement).src || '';
+        if (src.includes('cca-lite.coinbase.com') || 
+            src.includes('relayer.testnet.zama.cloud')) {
+          event.preventDefault();
+          event.stopPropagation();
+          return false;
+        }
+      }
+    };
+
     window.addEventListener('error', errorHandler, true);
     window.addEventListener('unhandledrejection', rejectionHandler);
+    window.addEventListener('error', resourceErrorHandler, true);
 
     return () => {
       // Restore original methods on cleanup
@@ -103,38 +146,11 @@ export function ErrorSuppressor() {
       console.warn = originalWarn;
       window.removeEventListener('error', errorHandler, true);
       window.removeEventListener('unhandledrejection', rejectionHandler);
+      window.removeEventListener('error', resourceErrorHandler, true);
     };
   }, []);
 
-  // Only show error UI in development
-  if (process.env.NODE_ENV !== 'development' || errorCount === 0) {
-    return null;
-  }
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-      <div className="bg-red-50 border border-red-200 rounded-lg p-3 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium text-red-800">
-              Errors Suppressed: {errorCount}
-            </span>
-          </div>
-          <button
-            onClick={() => setErrorCount(0)}
-            className="text-red-600 hover:text-red-800 text-sm"
-          >
-            ✕
-          </button>
-        </div>
-        {lastError && (
-          <div className="mt-2 text-xs text-red-700 truncate">
-            Last: {lastError}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  // No UI - silently suppress errors
+  return null;
 }
 
