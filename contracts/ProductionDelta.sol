@@ -8,6 +8,32 @@ import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 /// @notice Tracks encrypted production values and calculates the difference between today and yesterday
 /// @dev Uses FHE to keep production values encrypted while allowing difference calculations
 contract ProductionDelta is SepoliaConfig {
+    /// @notice Event emitted when yesterday's production is set
+    event YesterdayProductionSet(address indexed setter, uint256 timestamp);
+
+    /// @notice Event emitted when today's production is set
+    event TodayProductionSet(address indexed setter, uint256 timestamp);
+
+    /// @notice Event emitted when delta is calculated
+    event DeltaCalculated(address indexed calculator, uint256 timestamp);
+
+    /// @notice Event emitted when both productions are set in batch
+    event BothProductionsSet(address indexed setter, uint256 timestamp);
+
+    /// @notice Event emitted when values are reset
+    event ValuesReset(address indexed resetter, uint256 timestamp);
+
+    /// @notice Event emitted when a user is authorized
+    event UserAuthorized(address indexed user, address indexed granter);
+
+    /// @notice Event emitted when a user authorization is revoked
+    event UserRevoked(address indexed user, address indexed revoker);
+
+    /// @notice Event emitted when emergency stop is activated
+    event EmergencyStopActivated(address indexed activator);
+
+    /// @notice Event emitted when operations are resumed
+    event OperationsResumed(address indexed resumer);
     /// @notice Contract constructor
     /// @dev Initializes the contract with the deployer as owner
     constructor() {
@@ -53,6 +79,8 @@ contract ProductionDelta is SepoliaConfig {
 
         FHE.allowThis(_yesterdayProduction);
         FHE.allow(_yesterdayProduction, msg.sender);
+
+        emit YesterdayProductionSet(msg.sender, block.timestamp);
     }
 
     /// @notice Stores today's production value (encrypted)
@@ -64,6 +92,8 @@ contract ProductionDelta is SepoliaConfig {
 
         FHE.allowThis(_todayProduction);
         FHE.allow(_todayProduction, msg.sender);
+
+        emit TodayProductionSet(msg.sender, block.timestamp);
     }
 
     /// @notice Calculates and stores the difference: delta = today - yesterday
@@ -76,6 +106,8 @@ contract ProductionDelta is SepoliaConfig {
 
         FHE.allowThis(_delta);
         FHE.allow(_delta, msg.sender);
+
+        emit DeltaCalculated(msg.sender, block.timestamp);
     }
 
     /// @notice Returns yesterday's encrypted production value
@@ -122,6 +154,7 @@ contract ProductionDelta is SepoliaConfig {
     /// @param user The address to authorize
     function authorizeUser(address user) external onlyOwner {
         _authorizedUsers[user] = true;
+        emit UserAuthorized(user, msg.sender);
     }
 
     /// @notice Revoke authorization from a user
@@ -129,16 +162,19 @@ contract ProductionDelta is SepoliaConfig {
     function revokeUser(address user) external onlyOwner {
         require(user != _owner, "Cannot revoke owner");
         _authorizedUsers[user] = false;
+        emit UserRevoked(user, msg.sender);
     }
 
     /// @notice Activate emergency stop mode
     function emergencyStop() external onlyOwner {
         _emergencyStop = true;
+        emit EmergencyStopActivated(msg.sender);
     }
 
     /// @notice Deactivate emergency stop mode
     function resumeOperations() external onlyOwner {
         _emergencyStop = false;
+        emit OperationsResumed(msg.sender);
     }
 
     /// @notice Check if a user is authorized
@@ -190,6 +226,8 @@ contract ProductionDelta is SepoliaConfig {
         FHE.allowThis(_todayProduction);
         FHE.allow(_yesterdayProduction, msg.sender);
         FHE.allow(_todayProduction, msg.sender);
+
+        emit BothProductionsSet(msg.sender, block.timestamp);
     }
 
     /// @notice Resets all stored values to zero
@@ -204,6 +242,8 @@ contract ProductionDelta is SepoliaConfig {
         FHE.allow(_yesterdayProduction, msg.sender);
         FHE.allow(_todayProduction, msg.sender);
         FHE.allow(_delta, msg.sender);
+
+        emit ValuesReset(msg.sender, block.timestamp);
     }
 }
 
