@@ -203,7 +203,7 @@ task("task:decrypt-delta", "Decrypts and displays the delta value")
     );
     console.log(`Encrypted delta: ${encryptedDelta}`);
     console.log(`Clear delta    : ${clearDelta}`);
-    
+
     if (clearDelta > 0n) {
       console.log(`Result: Today's production is ${clearDelta} units more than yesterday.`);
     } else if (clearDelta < 0n) {
@@ -211,5 +211,70 @@ task("task:decrypt-delta", "Decrypts and displays the delta value")
     } else {
       console.log(`Result: Today's production is the same as yesterday.`);
     }
+  });
+
+/**
+ * Example:
+ *   - npx hardhat --network localhost task:set-batch --yesterday 500 --today 750
+ *   - npx hardhat --network sepolia task:set-batch --yesterday 500 --today 750
+ */
+task("task:set-batch", "Sets both yesterday and today production values in batch")
+  .addOptionalParam("address", "Optionally specify the ProductionDelta contract address")
+  .addParam("yesterday", "The yesterday production value")
+  .addParam("today", "The today production value")
+  .setAction(async function (taskArguments: TaskArguments, hre) {
+    const { ethers, deployments, fhevm } = hre;
+
+    const yesterdayValue = parseInt(taskArguments.yesterday);
+    const todayValue = parseInt(taskArguments.today);
+
+    if (!Number.isInteger(yesterdayValue) || !Number.isInteger(todayValue)) {
+      throw new Error(`Arguments --yesterday and --today must be integers`);
+    }
+
+    if (yesterdayValue <= 0 || todayValue <= 0 || yesterdayValue > 1000000 || todayValue > 1000000) {
+      throw new Error(`Values must be between 1 and 1,000,000`);
+    }
+
+    await fhevm.initializeCLIApi();
+
+    const ProductionDeltaDeployment = taskArguments.address
+      ? { address: taskArguments.address }
+      : await deployments.get("ProductionDelta");
+    console.log(`ProductionDelta: ${ProductionDeltaDeployment.address}`);
+
+    const signers = await ethers.getSigners();
+
+    const productionDeltaContract = await ethers.getContractAt("ProductionDelta", ProductionDeltaDeployment.address);
+
+    // Encrypt both values
+    const encryptedYesterday = await fhevm
+      .createEncryptedInput(ProductionDeltaDeployment.address, signers[0].address)
+      .add32(yesterdayValue)
+      .encrypt();
+
+    const encryptedToday = await fhevm
+      .createEncryptedInput(ProductionDeltaDeployment.address, signers[0].address)
+      .add32(todayValue)
+      .encrypt();
+
+    const tx = await productionDeltaContract
+      .connect(signers[0])
+      .setBothProductions(
+        encryptedYesterday.handles[0],
+        encryptedToday.handles[0],
+        encryptedYesterday.inputProof,
+        encryptedToday.inputProof
+      );
+
+    console.log(`Batch submission - Yesterday: ${yesterdayValue}, Today: ${todayValue}`);
+    console.log(`Wait for tx:${tx.hash}...`);
+
+    const receipt = await tx.wait();
+    console.log(`tx:${tx.hash} status=${receipt?.status}`);
+
+    const expectedDelta = todayValue - yesterdayValue;
+    console.log(`ProductionDelta setBothProductions() succeeded!`);
+    console.log(`Expected delta: ${expectedDelta} (${expectedDelta > 0 ? 'increase' : expectedDelta < 0 ? 'decrease' : 'no change'})`);
   });
 
