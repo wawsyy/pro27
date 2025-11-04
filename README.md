@@ -8,6 +8,11 @@ A Fully Homomorphic Encryption (FHE) based production difference tracking system
 - 📊 **Privacy-Preserving Calculations**: Calculate the difference (delta) between production values without decrypting individual values
 - 🔓 **Selective Decryption**: Decrypt only the delta result to see the trend without exposing actual production numbers
 - 🌈 **Rainbow Wallet Integration**: Connect using Rainbow wallet for a modern Web3 experience
+- ⚡ **Batch Operations**: Submit both production values simultaneously
+- 🎛️ **Access Control**: Owner-based authorization with emergency stop functionality
+- 📈 **Advanced Analytics**: Growth percentage calculation and production trend analysis
+- 📱 **Responsive Design**: Optimized for both desktop and mobile devices
+- 🎨 **Modern UI**: Animated gradients and glass effects for enhanced user experience
 
 ## Business Use Case
 
@@ -128,12 +133,32 @@ pro27/
 
 ### ProductionDelta.sol
 
-- `setYesterdayProduction(uint32 encrypted)` - Store encrypted yesterday production
-- `setTodayProduction(uint32 encrypted)` - Store encrypted today production
+#### Core Production Functions
+- `setYesterdayProduction(uint32 encrypted, bytes proof)` - Store encrypted yesterday production
+- `setTodayProduction(uint32 encrypted, bytes proof)` - Store encrypted today production
+- `setBothProductions(uint32 yesterday, uint32 today, bytes yesterdayProof, bytes todayProof)` - Batch set both values
 - `calculateDelta()` - Calculate delta = today - yesterday (encrypted)
 - `getYesterdayProduction()` - Get encrypted yesterday value
 - `getTodayProduction()` - Get encrypted today value
 - `getDelta()` - Get encrypted delta value
+
+#### Analysis Functions
+- `isProductionIncreased()` - Check if production grew (returns bool)
+- `getGrowthPercentage()` - Calculate encrypted growth percentage
+- `validateProductionData()` - Validate that both values are set and > 0
+- `getLastCalculatedDelta()` - Get last calculated delta value
+- `getLastUpdateInfo()` - Get timestamp and updater of last calculation
+
+#### Access Control Functions
+- `authorizeUser(address user)` - Authorize user for operations (owner only)
+- `revokeUser(address user)` - Revoke user authorization (owner only)
+- `isAuthorized(address user)` - Check if user is authorized
+- `emergencyStop()` - Activate emergency stop mode (owner only)
+- `resumeOperations()` - Resume normal operations (owner only)
+- `getContractStatus()` - Get owner address and emergency status
+
+#### Utility Functions
+- `resetValues()` - Reset all stored values to zero
 
 ## Frontend Usage
 
@@ -174,6 +199,27 @@ npm run test:sepolia
 ### WalletConnect Project ID
 
 Update `frontend/config/wagmi.ts` with your WalletConnect project ID from https://cloud.walletconnect.com
+
+## Recent Updates
+
+### v0.3.0 - Enhanced Analytics & Security
+- ✅ Added production growth percentage calculations
+- ✅ Implemented comprehensive access control system
+- ✅ Added batch operations for improved efficiency
+- ✅ Enhanced UI with responsive design and animations
+- ✅ Improved error handling and debugging tools
+- ✅ Added event logging for all contract operations
+
+### v0.2.0 - Advanced Features
+- ✅ Batch submission mode in UI
+- ✅ Historical tracking and data validation
+- ✅ Emergency stop functionality
+- ✅ Modern glass-card styling
+
+### v0.1.0 - Initial Release
+- ✅ Basic FHE production tracking
+- ✅ Rainbow wallet integration
+- ✅ Privacy-preserving delta calculations
 
 ## Documentation
 
