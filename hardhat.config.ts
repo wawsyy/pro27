@@ -32,6 +32,8 @@ const config: HardhatUserConfig = {
     currency: "USD",
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: [],
+    outputFile: "gas-report.txt",
+    noColors: true,
   },
   networks: {
     hardhat: {
@@ -53,6 +55,19 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
       chainId: 11155111,
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+      gasPrice: 20000000000, // 20 gwei
+    },
+    localhost: {
+      accounts: {
+        mnemonic: MNEMONIC,
+      },
+      chainId: 31337,
+      url: "http://127.0.0.1:8545",
+    },
+    mainnet: {
+      accounts: [PRIVATE_KEY],
+      chainId: 1,
+      url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
     },
   },
   paths: {
