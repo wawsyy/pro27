@@ -36,6 +36,8 @@ contract ProductionDelta is SepoliaConfig {
     event OperationsResumed(address indexed resumer);
     /// @notice Contract constructor
     /// @dev Initializes the contract with the deployer as owner and sets up initial state
+    /// Sets deployer as owner and authorized user, initializes emergency stop to false,
+    /// and records deployment timestamp
     constructor() {
         _owner = msg.sender;
         _authorizedUsers[msg.sender] = true;
