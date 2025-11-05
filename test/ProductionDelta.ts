@@ -49,6 +49,48 @@ describe("ProductionDelta", function () {
     expect(encryptedDelta).to.eq(ethers.ZeroHash);
   });
 
+  it("should have correct initial contract status", async function () {
+    const [owner, emergencyStop] = await productionDeltaContract.getContractStatus();
+    expect(owner).to.eq(signers.deployer.address);
+    expect(emergencyStop).to.be.false;
+  });
+
+  it("should authorize and revoke users correctly", async function () {
+    // Initially alice should not be authorized
+    expect(await productionDeltaContract.isAuthorized(signers.alice.address)).to.be.false;
+
+    // Authorize alice
+    await productionDeltaContract.authorizeUser(signers.alice.address);
+    expect(await productionDeltaContract.isAuthorized(signers.alice.address)).to.be.true;
+
+    // Revoke alice
+    await productionDeltaContract.revokeUser(signers.alice.address);
+    expect(await productionDeltaContract.isAuthorized(signers.alice.address)).to.be.false;
+  });
+
+  it("should validate production data correctly", async function () {
+    // Initially should return false (no data set)
+    expect(await productionDeltaContract.validateProductionData()).to.be.false;
+
+    // Set yesterday production
+    const yesterdayValue = 100;
+    const yesterdayEncrypted = await fhevm.createEncryptedInput(await productionDeltaContract.getAddress(), signers.deployer.address);
+    yesterdayEncrypted.add32(yesterdayValue);
+    const yesterdayProof = await yesterdayEncrypted.getProof();
+
+    await productionDeltaContract.setYesterdayProduction(yesterdayEncrypted, yesterdayProof.data);
+    expect(await productionDeltaContract.validateProductionData()).to.be.false; // Still missing today
+
+    // Set today production
+    const todayValue = 120;
+    const todayEncrypted = await fhevm.createEncryptedInput(await productionDeltaContract.getAddress(), signers.deployer.address);
+    todayEncrypted.add32(todayValue);
+    const todayProof = await todayEncrypted.getProof();
+
+    await productionDeltaContract.setTodayProduction(todayEncrypted, todayProof.data);
+    expect(await productionDeltaContract.validateProductionData()).to.be.true; // Now both are set
+  });
+
   it("should set yesterday production value", async function () {
     const clearYesterday = 100;
     const encryptedYesterday = await fhevm
