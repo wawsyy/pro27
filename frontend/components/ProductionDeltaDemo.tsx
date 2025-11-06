@@ -219,14 +219,14 @@ export const ProductionDeltaDemo = () => {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Yesterday's Production
+                Yesterday&apos;s Production
               </label>
               <input
                 type="number"
                 className={inputClass}
                 value={yesterdayValue}
                 onChange={(e) => setYesterdayValue(e.target.value)}
-                placeholder="Enter yesterday's value"
+                placeholder="Enter yesterday&apos;s value"
                 min="0"
               />
               <button
@@ -242,14 +242,14 @@ export const ProductionDeltaDemo = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Today's Production
+                Today&apos;s Production
               </label>
               <input
                 type="number"
                 className={inputClass}
                 value={todayValue}
                 onChange={(e) => setTodayValue(e.target.value)}
-                placeholder="Enter today's value"
+                placeholder="Enter today&apos;s value"
                 min="0"
               />
               <button
