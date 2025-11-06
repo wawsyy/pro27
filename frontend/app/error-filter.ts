@@ -3,8 +3,8 @@ if (typeof window !== 'undefined') {
   const originalError = console.error;
   const originalWarn = console.warn;
 
-  console.error = (...args: any[]) => {
-    const message = args[0]?.toString() || '';
+  console.error = (...args: unknown[]) => {
+    const message = String(args[0] ?? '');
     
     // Filter out Base Account SDK COOP warnings
     if (message.includes('Base Account SDK requires the Cross-Origin-Opener-Policy')) {
@@ -22,18 +22,18 @@ if (typeof window !== 'undefined') {
       return;
     }
     
-    originalError.apply(console, args);
+    originalError.apply(console, args as Parameters<typeof console.error>);
   };
 
-  console.warn = (...args: any[]) => {
-    const message = args[0]?.toString() || '';
+  console.warn = (...args: unknown[]) => {
+    const message = String(args[0] ?? '');
     
     // Filter out Base Account SDK warnings
     if (message.includes('Base Account SDK')) {
       return;
     }
     
-    originalWarn.apply(console, args);
+    originalWarn.apply(console, args as Parameters<typeof console.warn>);
   };
 }
 

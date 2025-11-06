@@ -11,7 +11,7 @@ export function ErrorSuppressor() {
     const originalWarn = console.warn.bind(console);
 
     // Override console.error
-    console.error = (...args: any[]) => {
+    console.error = (...args: unknown[]) => {
       const message = String(args[0] || '');
       const fullMessage = args.map(arg => String(arg)).join(' ');
 
@@ -59,7 +59,7 @@ export function ErrorSuppressor() {
     };
 
     // Override console.warn
-    console.warn = (...args: any[]) => {
+    console.warn = (...args: unknown[]) => {
       const message = String(args[0] || '');
       const fullMessage = args.map(arg => String(arg)).join(' ');
       

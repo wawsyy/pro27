@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { ethers } from "ethers";
 import { useFhevm } from "../fhevm/useFhevm";
 import { useInMemoryStorage } from "../hooks/useInMemoryStorage";
 import { useRainbowWallet } from "../hooks/useRainbowWallet";
@@ -16,7 +17,6 @@ export const ProductionDeltaDemo = () => {
   const {
     provider,
     chainId,
-    accounts,
     isConnected,
     ethersSigner,
     ethersReadonlyProvider,
@@ -30,7 +30,7 @@ export const ProductionDeltaDemo = () => {
   });
   
   const sameSigner = useRef(
-    (signer: any) => {
+    (signer: ethers.JsonRpcSigner | undefined) => {
       return signer === ethersSignerRef.current;
     }
   );
@@ -147,7 +147,7 @@ export const ProductionDeltaDemo = () => {
           <p className="text-sm text-yellow-800">
             <strong>Note:</strong> On Sepolia testnet, FHEVM requires the relayer service. 
             If submission fails, the relayer may be temporarily unavailable. 
-            For testing, consider using local Hardhat node (chainId: 31337) which uses mock mode and doesn't require relayer.
+            For testing, consider using local Hardhat node (chainId: 31337) which uses mock mode and doesn&apos;t require relayer.
           </p>
         </div>
       )}
@@ -175,28 +175,28 @@ export const ProductionDeltaDemo = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Yesterday's Production
+                  Yesterday&apos;s Production
                 </label>
                 <input
                   type="number"
                   className={inputClass}
                   value={yesterdayValue}
                   onChange={(e) => setYesterdayValue(e.target.value)}
-                  placeholder="Enter yesterday's value"
+                  placeholder="Enter yesterday&apos;s value"
                   min="0"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Today's Production
+                  Today&apos;s Production
                 </label>
                 <input
                   type="number"
                   className={inputClass}
                   value={todayValue}
                   onChange={(e) => setTodayValue(e.target.value)}
-                  placeholder="Enter today's value"
+                  placeholder="Enter today&apos;s value"
                   min="0"
                 />
               </div>
@@ -312,10 +312,10 @@ export const ProductionDeltaDemo = () => {
             </div>
             <p className="text-2xl font-bold text-purple-700 mt-2">
               {Number(productionDelta.clear) > 0
-                ? `Today's production is ${productionDelta.clear.toString()} units higher than yesterday`
+                ? `Today&apos;s production is ${productionDelta.clear.toString()} units higher than yesterday`
                 : Number(productionDelta.clear) < 0
-                  ? `Today's production is ${(-Number(productionDelta.clear)).toString()} units lower than yesterday`
-                  : "Today's production matches yesterday's level"}
+                  ? `Today&apos;s production is ${(-Number(productionDelta.clear)).toString()} units lower than yesterday`
+                  : "Today&apos;s production matches yesterday&apos;s level"}
             </p>
             {showAdvancedStats && (
               <div className="mt-4 p-3 bg-white rounded border">
