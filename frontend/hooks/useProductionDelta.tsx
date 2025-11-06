@@ -41,7 +41,7 @@ function getProductionDeltaByChainId(
   const entry =
     ProductionDeltaAddresses[chainId.toString() as keyof typeof ProductionDeltaAddresses];
 
-  if (!("address" in entry) || entry.address === ethers.ZeroAddress) {
+  if (!entry || !("address" in entry) || entry.address === ethers.ZeroAddress) {
     return { abi: ProductionDeltaABI.abi, chainId };
   }
 

@@ -1,5 +1,8 @@
 import { ProductionDeltaDemo } from "@/components/ProductionDeltaDemo";
 
+// Disable static generation since this page uses Web3 wallet connections
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <main className="">
