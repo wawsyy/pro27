@@ -52,7 +52,13 @@ Vercel 部署通常有三个链接：
 4. 如果 Build Command 包含 `cd frontend`，请：
    - 点击 Build Command 右侧的 **Override** 开关，将其**打开**（蓝色）
    - 将命令改为：`npm run build`
-   - 点击 **Save** 保存
+   - **重要**：删除任何 `cd frontend &&` 的前缀
+   - 确保命令只是：`npm run build`（或者保持默认的 `npm run build` or `next build`）
+   - 点击页面底部的 **Save** 按钮保存
+   
+   **或者更简单的方法**：
+   - 如果 Build Command 的 Override 开关是**打开**的（蓝色），点击关闭它（灰色）
+   - 这样 Vercel 会使用默认的构建命令，会自动适配 Root Directory 设置
 
 **为什么？**
 - Root Directory 设置为 `frontend` 后，Vercel 已经在该目录中执行命令
