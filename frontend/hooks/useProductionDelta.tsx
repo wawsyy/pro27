@@ -392,6 +392,79 @@ export const useProductionDelta = (parameters: {
     ]
   );
 
+  const canReset = useMemo(() => {
+    return (
+      productionDelta.address &&
+      ethersSigner &&
+      !isRefreshing &&
+      !isSubmitting
+    );
+  }, [productionDelta.address, ethersSigner, isRefreshing, isSubmitting]);
+
+  const resetValues = useCallback(() => {
+    if (isRefreshingRef.current || isSubmittingRef.current) {
+      return;
+    }
+
+    if (!productionDelta.address || !ethersSigner) {
+      return;
+    }
+
+    const thisChainId = chainId;
+    const thisAddress = productionDelta.address;
+    const thisEthersSigner = ethersSigner;
+    const contract = new ethers.Contract(
+      thisAddress,
+      productionDelta.abi,
+      thisEthersSigner
+    );
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+    setMessage("Start resetValues()...");
+
+    const run = async () => {
+      const isStale = () =>
+        thisAddress !== productionDeltaRef.current?.address ||
+        !sameChain.current(thisChainId) ||
+        !sameSigner.current(thisEthersSigner);
+
+      try {
+        const tx = await contract.resetValues();
+
+        setMessage(`Wait for tx:${tx.hash}...`);
+
+        const receipt = await tx.wait();
+
+        setMessage(`resetValues() completed status=${receipt?.status}`);
+
+        if (isStale()) {
+          setMessage("Ignore resetValues");
+          return;
+        }
+
+        // Clear the local state
+        setDeltaHandle(undefined);
+        setClearDelta(undefined);
+        clearDeltaRef.current = undefined;
+      } catch (e) {
+        setMessage(`resetValues() Failed! ${e}`);
+      } finally {
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
+      }
+    };
+
+    run();
+  }, [
+    ethersSigner,
+    productionDelta.address,
+    productionDelta.abi,
+    chainId,
+    sameChain,
+    sameSigner,
+  ]);
+
   const canCalculate = useMemo(() => {
     return (
       productionDelta.address &&
@@ -469,8 +542,10 @@ export const useProductionDelta = (parameters: {
     canGetDelta,
     canSubmit,
     canCalculate,
+    canReset,
     submitProduction,
     calculateDelta,
+    resetValues,
     decryptDeltaHandle,
     refreshDeltaHandle,
     isDecrypted,
