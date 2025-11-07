@@ -83,7 +83,8 @@
     "node:fhevm": "hardhat node --fhevm",
     "frontend:dev": "cd frontend && npm run dev",
     "frontend:build": "cd frontend && npm run build",
-    "dev": "concurrently \"npm run node:fhevm\" \"npm run frontend:dev\""
+    "dev": "concurrently \"npm run node:fhevm\" \"npm run frontend:dev\"",
+    "clean:all": "npm run clean && rimraf ./frontend/.next"
   },
   "overrides": {
     "ws@>=7.0.0 <7.5.10": ">=7.5.10",
