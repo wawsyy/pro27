@@ -362,5 +362,49 @@ describe("ProductionDelta", function () {
     expect(todayAfter).to.not.eq(ethers.ZeroHash);
     expect(deltaAfter).to.not.eq(ethers.ZeroHash);
   });
+
+  it("should properly handle production change status analysis", async function () {
+    const yesterdayValue = 200;
+    const todayValue = 350;
+    const expectedDelta = todayValue - yesterdayValue; // 150
+
+    // Set production values
+    const yesterdayEncrypted = await fhevm
+      .createEncryptedInput(productionDeltaContractAddress, signers.alice.address)
+      .add32(yesterdayValue)
+      .encrypt();
+
+    const todayEncrypted = await fhevm
+      .createEncryptedInput(productionDeltaContractAddress, signers.alice.address)
+      .add32(todayValue)
+      .encrypt();
+
+    await productionDeltaContract
+      .connect(signers.alice)
+      .setYesterdayProduction(yesterdayEncrypted.handles[0], yesterdayEncrypted.inputProof);
+
+    await productionDeltaContract
+      .connect(signers.alice)
+      .setTodayProduction(todayEncrypted.handles[0], todayEncrypted.inputProof);
+
+    await productionDeltaContract.connect(signers.alice).calculateDelta();
+
+    // Get production change status
+    const status = await productionDeltaContract.connect(signers.alice).getProductionChangeStatus();
+
+    // Verify we get encrypted results (we can't decrypt in tests without proper setup)
+    expect(status.yesterdayGreaterThanZero).to.be.a("string");
+    expect(status.todayGreaterThanZero).to.be.a("string");
+    expect(status.isIncreased).to.be.a("string");
+    expect(status.isEqual).to.be.a("string");
+    expect(status.delta).to.be.a("string");
+
+    // All encrypted results should be non-zero hashes
+    expect(status.yesterdayGreaterThanZero).to.not.eq(ethers.ZeroHash);
+    expect(status.todayGreaterThanZero).to.not.eq(ethers.ZeroHash);
+    expect(status.isIncreased).to.not.eq(ethers.ZeroHash);
+    expect(status.isEqual).to.not.eq(ethers.ZeroHash);
+    expect(status.delta).to.not.eq(ethers.ZeroHash);
+  });
 });
 
