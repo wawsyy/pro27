@@ -40,11 +40,31 @@ Vercel 部署通常有三个链接：
 - Vercel 需要知道在哪里找到 Next.js 项目
 - 不设置会导致构建失败：`cd frontend: No such file or directory`
 
-### 步骤 2：验证配置
+### 步骤 2：检查并修复 Build Command（重要！）
+
+设置 Root Directory 后，**必须确保 Build Command 正确**：
+
+1. 在同一 **General** 设置页面
+2. 找到 **Framework Settings** 部分
+3. 检查 **Build Command** 字段：
+   - ✅ **正确**：`npm run build` 或 `next build`（不需要 `cd frontend`）
+   - ❌ **错误**：`cd frontend && npm run build`（必须删除）
+4. 如果 Build Command 包含 `cd frontend`，请：
+   - 点击 Build Command 右侧的 **Override** 开关，将其**打开**（蓝色）
+   - 将命令改为：`npm run build`
+   - 点击 **Save** 保存
+
+**为什么？**
+- Root Directory 设置为 `frontend` 后，Vercel 已经在该目录中执行命令
+- 不需要再执行 `cd frontend`
+- 包含 `cd frontend` 会导致错误：`cd: frontend: No such file or directory`
+
+### 步骤 3：验证配置
 
 配置完成后，下一次部署应该会：
+- 自动在 `frontend` 目录中工作
+- 运行 `npm run build`（不需要 cd）
 - 自动检测 Next.js 框架
-- 使用正确的构建命令
 - 输出到正确的位置
 
 ## 📝 设置生产域名（使用 clothing-zeta-ashy.vercel.app）
