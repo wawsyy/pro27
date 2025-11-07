@@ -4,7 +4,8 @@ A Fully Homomorphic Encryption (FHE) based production difference tracking system
 
 ## 🚀 Live Demo
 
-- **Web Application**: [https://clothing-zeta-ashy.vercel.app/](https://clothing-zeta-ashy.vercel.app/)
+- **Web Application**: [https://clothing-git-main-waws-projects-2bccbfbd.vercel.app/](https://clothing-git-main-waws-projects-2bccbfbd.vercel.app/) (Latest deployment with yellow theme)
+- **Production Domain**: [https://clothing.vercel.app/](https://clothing.vercel.app/) (Recommended - auto-updates to latest)
 - **Demo Video**: [https://github.com/ClarenceEdie/secure-apparel-chain/blob/main/clothing.mp4](https://github.com/ClarenceEdie/secure-apparel-chain/blob/main/clothing.mp4)
 - **Testnet Contract**: `0x3585B7E5Cfe9d31000009E3efc8Eb77aee55246f` (Sepolia)
 
