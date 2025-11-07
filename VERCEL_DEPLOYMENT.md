@@ -20,6 +20,33 @@ Vercel 部署通常有三个链接：
    - 例如：`clothing-abc123def.vercel.app`
    - 每次提交都会生成新的预览域名
 
+## ⚠️ 重要：首次部署配置
+
+在设置生产域名之前，请确保项目配置正确：
+
+### 步骤 1：配置 Root Directory（必须先完成）
+
+1. 访问 [Vercel Dashboard](https://vercel.com/dashboard)
+2. 选择你的项目（如 `clothing`）
+3. 点击 **Settings** 标签
+4. 在左侧菜单选择 **General**
+5. 找到 **Root Directory** 部分
+6. 点击 **Edit** 按钮
+7. 输入：`frontend`
+8. 点击 **Save**
+
+**为什么需要这个？**
+- 你的 Next.js 应用在 `frontend` 子目录中
+- Vercel 需要知道在哪里找到 Next.js 项目
+- 不设置会导致构建失败：`cd frontend: No such file or directory`
+
+### 步骤 2：验证配置
+
+配置完成后，下一次部署应该会：
+- 自动检测 Next.js 框架
+- 使用正确的构建命令
+- 输出到正确的位置
+
 ## 📝 设置生产域名（使用 clothing-zeta-ashy.vercel.app）
 
 ### 步骤 1：确认项目名称
@@ -112,6 +139,27 @@ vercel domains add production-delta-fhe.vercel.app
 - **框架**: Next.js 15.5.6
 - **构建目录**: `frontend`
 - **输出目录**: `frontend/.next`
+
+### 🔧 Vercel 项目设置（重要！）
+
+由于 Next.js 应用在 `frontend` 子目录中，**必须在 Vercel Dashboard 中配置**：
+
+1. **访问项目设置**
+   - 打开 Vercel Dashboard > 选择项目 > Settings
+
+2. **设置 Root Directory**
+   - 在左侧菜单选择 **General**
+   - 找到 **Root Directory** 设置
+   - 点击 **Edit**
+   - 输入：`frontend`
+   - 点击 **Save**
+
+3. **框架检测**
+   - Vercel 会自动检测到 Next.js 框架
+   - 构建命令会自动设置为：`npm run build`
+   - 输出目录会自动设置为：`.next`
+
+**⚠️ 注意**：如果不设置 Root Directory，Vercel 会在根目录查找 Next.js 项目，导致构建失败。
 
 ## 🔗 更新 README 中的部署链接
 
