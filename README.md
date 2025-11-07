@@ -262,6 +262,42 @@ Update `frontend/config/wagmi.ts` with your WalletConnect project ID from https:
 - ✅ Improved error handling and debugging tools
 - ✅ Added event logging for all contract operations
 
+## 🤝 Contributing
+
+We welcome contributions to the Production Delta FHE project! Here's how you can contribute:
+
+### Development Setup
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/your-username/pro27.git`
+3. Install dependencies: `npm install`
+4. Start development environment: `npm run dev`
+
+### Testing
+- Run unit tests: `npm test`
+- Run tests on Sepolia: `npm run test:sepolia`
+- Check code quality: `npm run lint`
+
+### Deployment
+- Deploy to localhost: `npm run deploy:localhost`
+- Deploy to Sepolia: `npm run deploy:sepolia`
+
+### Code Standards
+- Follow ESLint and Prettier configurations
+- Write comprehensive tests for new features
+- Use conventional commits for all changes
+- Ensure all code is properly documented
+
+## 📜 License
+
+This project is licensed under the BSD-3-Clause-Clear License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Zama** for the FHEVM technology
+- **Hardhat** for the development framework
+- **Rainbow Wallet** for Web3 wallet integration
+- **Open-source community** for continuous support and contributions
+
 ### v0.2.0 - Advanced Features
 - ✅ Batch submission mode in UI
 - ✅ Historical tracking and data validation
