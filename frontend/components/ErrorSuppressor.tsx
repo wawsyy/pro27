@@ -126,9 +126,17 @@ export function ErrorSuppressor() {
     const resourceErrorHandler = (event: Event) => {
       const target = event.target as HTMLElement;
       if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK' || target.tagName === 'IMG')) {
-        const src = (target as HTMLScriptElement | HTMLLinkElement | HTMLImageElement).src || '';
-        if (src.includes('cca-lite.coinbase.com') || 
-            src.includes('relayer.testnet.zama.cloud')) {
+        let url = '';
+        if (target.tagName === 'SCRIPT') {
+          url = (target as HTMLScriptElement).src || '';
+        } else if (target.tagName === 'IMG') {
+          url = (target as HTMLImageElement).src || '';
+        } else if (target.tagName === 'LINK') {
+          url = (target as HTMLLinkElement).href || '';
+        }
+
+        if (url.includes('cca-lite.coinbase.com') ||
+            url.includes('relayer.testnet.zama.cloud')) {
           event.preventDefault();
           event.stopPropagation();
           return false;
